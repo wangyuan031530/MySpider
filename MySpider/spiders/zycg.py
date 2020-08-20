@@ -55,17 +55,20 @@ class ZycgSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse_province_gys, headers=self.headers)
 
     def parse_province_gys(self, response):
-        gys_list = response.xpath('//table[@class="gys_bj"]/tr[position()>1]/td[5]/a/@href').getall()
+        gys_list = response.xpath('//table[@class="gys_bj"]/tbody/tr[position()>1]/td[5]/a/@href').getall()
         for href in gys_list:
             item = ZycgItem()
-            item['company'] = response.xpath('//table[@class="gys_bj"]/tr[position()>1]/td[5]/a/text()').get()
-            url = self.base_url + href
+            item['company'] = response.xpath('//table[@class="gys_bj"]/tbody/tr[position()>1]/td[5]/a/text()').get().strip()
+            url = self.base_url + '/gys_zs/gys_basic_info?GetWay=Ajax&id=' + href.split('/')[-1]
             yield scrapy.Request(url=url, callback=self.parse_item, headers=self.headers, meta={'item': deepcopy(item)})
 
     def parse_item(self, response):
         item = response.meta['item']
-        item['address'] = ''
         item['name'] = response.xpath('//table[@class="gys_info"]/tr[7]/td[2]/text()').get()
         item['phone'] = response.xpath('//table[@class="gys_info"]/tr[8]/td[4]/text()').get()
+        if item['phone'] is not None:
+            item['phone'] = item['phone'].strip()
         item['mobile'] = response.xpath('//table[@class="gys_info"]/tr[9]/td[4]/text()').get()
+        if item['mobile'] is not None:
+            item['mobile'] = item['mobile'].strip()
         return item

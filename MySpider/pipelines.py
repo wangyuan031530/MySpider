@@ -6,12 +6,12 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-from MySpider.items import ZycgModel
+from MySpider.items import Phonenums
 
 
 class MyspiderPipeline:
     def process_item(self, item, spider):
-        ZycgModel.create(company=item['company'], name=item['name'],
-                         address=item['address'], phone=item['phone'], mobile=item['mobile'])
+        Phonenums.create(company=item['company'], name=item['name'],
+                         phone=item['phone'], mobile=item['mobile'])
 
         return item
