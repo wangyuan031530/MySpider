@@ -28,13 +28,13 @@ class ZycgSpider(scrapy.Spider):
         href_list = response.xpath('//td[@class="grade3"]/a')
         for href in href_list:
             url = self.base_url + href.xpath('./@href').get()
-            yield scrapy.Request(url=url, callback=self.parse_brand, headers=self.headers)
+            yield scrapy.Request(url=url, callback=self.parse_brand, dont_filter=True)
 
     def parse_brand(self, response):
         brand_href = self.base_url + response.xpath('//div[@class="tzym"]/div/div['
                                                     '2]/table/tr/td/table/tr/td/table/tr/td/a['
                                                     '1]/@href').get()
-        yield scrapy.Request(url=brand_href, callback=self.parse_all_brand)
+        yield scrapy.Request(url=brand_href, callback=self.parse_all_brand, dont_filter=True)
 
     def parse_all_brand(self, response):
         href_list = response.xpath('//td[@class="Introduce_Info_Model"]/a/@href').getall()
@@ -43,7 +43,7 @@ class ZycgSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse_gys, headers=self.headers)
         next_page = response.xpath('//a[@class="next_page"]/@href').get()
         if next_page is not None:
-            yield response.follow(next_page, self.parse_all_brand)
+            yield response.follow(next_page, self.parse_all_brand, dont_filter=True)
 
     def parse_gys(self, response):
         FDItemCode = eval(response.xpath('//div[@id="MainMeun"]/ul/li[2]/@onclick').get().split(',')[1])
@@ -52,16 +52,17 @@ class ZycgSpider(scrapy.Spider):
         for i in range(9, 40):
             url = 'http://oa.zycg.cn/td_xxlcpxygh/gys_info?FDProductID=' + FDProductID + \
                   '&FDItemCode=' + FDItemCode + '&SelectProvinse=' + str(i)
-            yield scrapy.Request(url=url, callback=self.parse_province_gys, headers=self.headers)
+            yield scrapy.Request(url=url, callback=self.parse_province_gys, dont_filter=True)
 
     def parse_province_gys(self, response):
-        gys_list = response.xpath('//table[@class="gys_bj"]/tbody/tr[position()>1]/td[5]/a/@href').getall()
-        for href in gys_list:
+        item_list = response.xpath('//table[@class="gys_bj"]/tbody/tr[position()>1]/td[5]/a')
+        for each in item_list:
             item = ZycgItem()
-            item['company'] = response.xpath('//table[@class="gys_bj"]/tbody/tr[position()>1]/td[5]/a/text()').get().strip()
+            item['company'] = each.xpath('./text()').get().strip()
+            href = each.xpath('./@href').get()
             url = self.base_url + '/gys_zs/gys_basic_info?GetWay=Ajax&id=' + href.split('/')[-1]
             item["address"] = url
-            yield scrapy.Request(url=url, callback=self.parse_item, headers=self.headers, meta={'item': item})
+            yield scrapy.Request(url=url, callback=self.parse_item, meta={'item': deepcopy(item)}, dont_filter=True)
 
     def parse_item(self, response):
         item = response.meta['item']
