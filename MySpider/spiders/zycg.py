@@ -60,7 +60,8 @@ class ZycgSpider(scrapy.Spider):
             item = ZycgItem()
             item['company'] = response.xpath('//table[@class="gys_bj"]/tbody/tr[position()>1]/td[5]/a/text()').get().strip()
             url = self.base_url + '/gys_zs/gys_basic_info?GetWay=Ajax&id=' + href.split('/')[-1]
-            yield scrapy.Request(url=url, callback=self.parse_item, headers=self.headers, meta={'item': deepcopy(item)})
+            item["address"] = url
+            yield scrapy.Request(url=url, callback=self.parse_item, headers=self.headers, meta={'item': item})
 
     def parse_item(self, response):
         item = response.meta['item']

@@ -11,7 +11,7 @@ from MySpider.items import Phonenums
 
 class MyspiderPipeline:
     def process_item(self, item, spider):
-        Phonenums.create(company=item['company'], name=item['name'],
-                         phone=item['phone'], mobile=item['mobile'])
+        Phonenums.create(address=item['address'], company=item['company'], name=item['name'],
+                         phone=item['phone'], mobile=item['mobile'], )
 
         return item
